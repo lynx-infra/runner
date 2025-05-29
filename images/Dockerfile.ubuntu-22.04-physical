@@ -134,7 +134,7 @@ RUN set -vx; \
     && rm -rf docker docker.tgz \
     && mkdir -p /usr/local/lib/docker/cli-plugins \
     && curl -fLo /usr/local/lib/docker/cli-plugins/docker-buildx \
-        "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-${BUILDX_ARCH}" \
+    "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-${BUILDX_ARCH}" \
     && chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
 
 RUN export ARCH=$(echo ${TARGETPLATFORM} | cut -d / -f2) \
@@ -193,8 +193,8 @@ RUN echo $ANDROID_NDK_LIST | awk -F ';' '{ for(i=1; i<=NF; i++) print $i }' \
     | while read -r substring; do sdkmanager --sdk_root=$ANDROID_HOME --install "ndk;$substring"; done
 # Setup avd
 RUN avdmanager --verbose create avd --force --name "Nexus_5_API_28" \
-      --package "system-images;android-28;google_apis;x86" \
-      --force -d "Nexus 5"
+    --package "system-images;android-28;google_apis;x86" \
+    --force -d "Nexus 5"
 
 USER root
 ENV ImageOS=ubuntu22
@@ -207,3 +207,6 @@ RUN ln -s $ANDROID_HOME $ANDROID_HOME/SDK
 RUN usermod -aG rdma runner
 
 USER runner
+
+# Make sure there is a hostedtoolcache/ directory with tool cache filled in the building context.
+COPY --link --chown=$RUNNER_USER_UID:$RUNNER_USER_UID hostedtoolcache/ $RUNNER_TOOL_CACHE
