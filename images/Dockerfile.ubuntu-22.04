@@ -120,7 +120,7 @@ ARG HOST_TMP_TOOL_CACHE
 COPY --chown=$RUNNER_USER_UID:$RUNNER_USER_UID ./$HOST_TMP_TOOL_CACHE/ $RUNNER_TOOL_CACHE/
 
 RUN cd "$RUNNER_ASSETS_DIR" \
-    && curl -fLo runner-container-hooks.zip https://github.com/coolkiid/runner-container-hooks/releases/download/v0.7.0/actions-runner-hooks-k8s-0.7.0.zip \
+    && curl -fLo runner-container-hooks.zip https://github.com/coolkiid/runner-container-hooks/releases/download/v0.7.1/actions-runner-hooks-k8s-0.7.1.zip \
     && unzip ./runner-container-hooks.zip -d ./k8s \
     && rm -f runner-container-hooks.zip
 
