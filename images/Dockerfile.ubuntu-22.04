@@ -207,6 +207,15 @@ RUN echo "PATH=${PATH}" > /etc/environment \
 
 RUN ln -s $ANDROID_HOME $ANDROID_HOME/SDK
 
+RUN apt-get update -y \
+    && apt-get install -y software-properties-common \
+    && add-apt-repository -y ppa:git-core/ppa \
+    && add-apt-repository -y ppa:deadsnakes/ppa \
+    && apt-get update -y \
+    && apt-get install -y --no-install-recommends \
+    zstd \
+    && rm -rf /var/lib/apt/lists/*
+
 USER runner
 
 # Add hook scripts to the mirror to hide encrypted information.
