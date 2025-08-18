@@ -19,28 +19,29 @@ ENV RUSTUP_HOME='C:\Users\ContainerAdministrator\.rustup' `
     PNPM_CACHE='C:\Users\ContainerAdministrator\.pnpm'
 
 # Download vs
-RUN Invoke-WebRequest -UseBasicParsing https://aka.ms/vs/17/release/vs_buildtools.exe -o C:\vs_buildtools.exe; `
-    # Install Build Tools with the Microsoft.VisualStudio.Workload.AzureBuildTools workload, excluding workloads and components with known issues.
-    C:\vs_buildtools.exe --quiet --wait --norestart --nocache `
-        --add Microsoft.VisualStudio.Workload.VCTools `
-        --add Microsoft.VisualStudio.Component.VC.ATL `
-        --add Microsoft.VisualStudio.Component.VC.ATL.ARM64 `
-        --add Microsoft.VisualStudio.Component.VC.ATL.ARM `
-        --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
-        --add Microsoft.VisualStudio.Component.VC.Tools.ARM `
-        --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 `
-        --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
-        --add Microsoft.VisualStudio.Workload.AzureBuildTools `
-        --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 `
-        --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 `
-        --remove Microsoft.VisualStudio.Component.Windows10SDK.14393 `
-        --remove Microsoft.VisualStudio.Component.Windows81SDK | Out-Null; `
-    # Cleanup
-    del C:\vs_buildtools.exe; `
-    # Download rust
-    Invoke-WebRequest -UseBasicParsing https://win.rustup.rs/x86_64 -o C:\rustup-init.exe; `
-    C:\rustup-init.exe -y | Out-Null; `
-    del C:\rustup-init.exe; `
+RUN `
+    # Invoke-WebRequest -UseBasicParsing https://aka.ms/vs/17/release/vs_buildtools.exe -o C:\vs_buildtools.exe; `
+    # # Install Build Tools with the Microsoft.VisualStudio.Workload.AzureBuildTools workload, excluding workloads and components with known issues.
+    # C:\vs_buildtools.exe --quiet --wait --norestart --nocache `
+    #     --add Microsoft.VisualStudio.Workload.VCTools `
+    #     --add Microsoft.VisualStudio.Component.VC.ATL `
+    #     --add Microsoft.VisualStudio.Component.VC.ATL.ARM64 `
+    #     --add Microsoft.VisualStudio.Component.VC.ATL.ARM `
+    #     --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+    #     --add Microsoft.VisualStudio.Component.VC.Tools.ARM `
+    #     --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 `
+    #     --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
+    #     --add Microsoft.VisualStudio.Workload.AzureBuildTools `
+    #     --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 `
+    #     --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 `
+    #     --remove Microsoft.VisualStudio.Component.Windows10SDK.14393 `
+    #     --remove Microsoft.VisualStudio.Component.Windows81SDK | Out-Null; `
+    # # Cleanup
+    # del C:\vs_buildtools.exe; `
+    # # Download rust
+    # Invoke-WebRequest -UseBasicParsing https://win.rustup.rs/x86_64 -o C:\rustup-init.exe; `
+    # C:\rustup-init.exe -y | Out-Null; `
+    # del C:\rustup-init.exe; `
     # Download 7-zip
     Invoke-WebRequest -UseBasicParsing https://www.7-zip.org/a/7z2301-x64.exe -o C:\7zip.exe; `
     C:\7zip.exe /S /D="C:\Users\ContainerAdministrator\7-Zip" | Out-Null; `
