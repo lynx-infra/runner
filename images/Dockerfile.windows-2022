@@ -1,32 +1,70 @@
-# This is the docker file for building our GHA runner with servercore.
-# Current size about 5.1GB
-#
-# The final RUN/CMD/ENTRYPOINT is called by k8s.
-
+# escape=`
 FROM mcr.microsoft.com/windows/servercore:ltsc2022
-LABEL name=arc-runner-windows
 
-# The "PLATFORM" argument is created to allow injecting it into the
-# build environment.
-# In this we can share the build scripts between X64 and ARM64.
-ARG RUNNER_VERSION=2.319.0
-ENV RUNNER_VERSION=$RUNNER_VERSION
-ENV chocolateyVersion=1.4.0
+USER ContainerAdministrator
 
-WORKDIR /actions-runner
+SHELL ["powershell.exe"]
 
-SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop';$ProgressPreference='silentlyContinue';"]
+ENV CARGO_HOME='C:\Users\ContainerAdministrator\.cargo' `
+    GIT_HOME='C:\Users\ContainerAdministrator\Git' `
+    PNPM_CACHE='C:\Users\ContainerAdministrator\.pnpm'
 
-# Get Action runner.
-RUN \
-    Invoke-WebRequest -Uri https://github.com/actions/runner/releases/download/v${env:RUNNER_VERSION}/actions-runner-win-x64-${env:RUNNER_VERSION}.zip -OutFile actions-runner-win.zip ; \
-    Add-Type -AssemblyName System.IO.Compression.FileSystem ; \
-    [System.IO.Compression.ZipFile]::ExtractToDirectory('actions-runner-win.zip', $PWD) ;\
-    rm actions-runner-win.zip
+# Download vs
+RUN Invoke-WebRequest -UseBasicParsing https://aka.ms/vs/17/release/vs_buildtools.exe -o C:\vs_buildtools.exe; `
+    # Install Build Tools with the Microsoft.VisualStudio.Workload.AzureBuildTools workload, excluding workloads and components with known issues.
+    C:\vs_buildtools.exe --quiet --wait --norestart --nocache `
+        --add Microsoft.VisualStudio.Workload.VCTools `
+        --add Microsoft.VisualStudio.Component.VC.ATL `
+        --add Microsoft.VisualStudio.Component.VC.ATL.ARM64 `
+        --add Microsoft.VisualStudio.Component.VC.ATL.ARM `
+        --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+        --add Microsoft.VisualStudio.Component.VC.Tools.ARM `
+        --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 `
+        --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
+        --add Microsoft.VisualStudio.Workload.AzureBuildTools `
+        --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 `
+        --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 `
+        --remove Microsoft.VisualStudio.Component.Windows10SDK.14393 `
+        --remove Microsoft.VisualStudio.Component.Windows81SDK | Out-Null; `
+    # Cleanup
+    del C:\vs_buildtools.exe; `
+    # Download 7-zip
+    Invoke-WebRequest -UseBasicParsing https://www.7-zip.org/a/7z2301-x64.exe -o C:\7zip.exe; `
+    C:\7zip.exe /S /D="C:\Users\ContainerAdministrator\7-Zip" | Out-Null; `
+    del C:\7zip.exe; `
+    # Download git
+    Invoke-WebRequest -UseBasicParsing https://github.com/git-for-windows/git/releases/download/v2.44.0.windows.1/Git-2.44.0-64-bit.tar.bz2 -o C:\Git.tar.bz2; `
+    C:\Users\ContainerAdministrator\7-Zip\7z.exe x C:\Git.tar.bz2 | Out-Null; `
+    C:\Users\ContainerAdministrator\7-Zip\7z.exe x C:\Git.tar -o"""$env:GIT_HOME""" | Out-Null; `
+    $path=$env:GIT_HOME + '\cmd;' + $env:GIT_HOME + '\bin;' + $env:GIT_HOME + '\usr\bin;' + $env:path; `
+    Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\' -Name Path -Value $path; `
+    del C:\Git.tar; `
+    del C:\Git.tar.bz2; `
+    # intall pwsh
+    Invoke-WebRequest -Uri https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/PowerShell-7.4.1-win-x64.msi -OutFile pwsh-installer.msi; `
+    msiexec.exe /package pwsh-installer.msi /quiet ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 ADD_FILE_CONTEXT_MENU_RUNPOWERSHELL=1 ENABLE_PSREMOTING=1 REGISTER_MANIFEST=1 USE_MU=1 ENABLE_MU=1 ADD_PATH=1; `
+    # npm
+    mkdir -p $env:USERPROFILE/AppData/Local/pnpm/config; `
+    echo "store-dir=${env:PNPM_CACHE}" | Out-File $env:USERPROFILE/AppData/Local/pnpm/config/rc -Encoding "UTF8";
 
-# Get Git and Linux tools
-RUN powershell Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+RUN git config --system core.compression 0
+RUN git config --system core.longpaths true
+RUN git config --global http.sslBackend openssl
 
-RUN powershell choco install git.install --params "'/GitAndUnixToolsOnPath'" -y
+# Prepare runner app
+ARG RUNNER_VERSION=2.319.1
+ENV RUNNER_VERSION=$RUNNER_VERSION `
+    RUNNER_HOME='C:\Users\ContainerAdministrator\runner' `
+    RUNNER_ALLOW_RUNASROOT=1
 
-RUN powershell choco feature enable -n allowGlobalConfirmation
+RUN Invoke-WebRequest -UseBasicParsing https://github.com/actions/runner/releases/download/v${env:RUNNER_VERSION}/actions-runner-win-x64-${env:RUNNER_VERSION}.zip -o C:\actions-runner.zip; `
+    Expand-Archive C:\actions-runner.zip -DestinationPath $env:RUNNER_HOME; `
+    del C:\actions-runner.zip;
+
+# Disable path limit
+RUN powershell Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name LongPathsEnabled -Type DWord -Value 1
+
+WORKDIR C:\Users\ContainerAdministrator\runner
+# Setup custom runner hook.
+ENV ACTIONS_RUNNER_HOOK_JOB_STARTED='C:\Users\ContainerAdministrator\runner\misc\hook.ps1'
+COPY hook.ps1 .\misc\hook.ps1
