@@ -61,7 +61,7 @@ RUN Invoke-WebRequest -UseBasicParsing https://aka.ms/vs/17/release/vs_buildtool
     mkdir -p $env:USERPROFILE/AppData/Local/pnpm/config; `
     echo "store-dir=${env:PNPM_CACHE}" | Out-File $env:USERPROFILE/AppData/Local/pnpm/config/rc -Encoding "UTF8";
 
-# intall pwsh
+# install pwsh
 RUN Invoke-WebRequest -Uri https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/PowerShell-7.4.1-win-x64.msi -OutFile pwsh-installer.msi; `
     msiexec.exe /package pwsh-installer.msi /quiet ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 ADD_FILE_CONTEXT_MENU_RUNPOWERSHELL=1 ENABLE_PSREMOTING=1 REGISTER_MANIFEST=1 USE_MU=1 ENABLE_MU=1 ADD_PATH=1;
 

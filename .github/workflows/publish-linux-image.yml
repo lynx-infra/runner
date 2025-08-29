@@ -3,14 +3,10 @@ name: Publish Linux Runner Image
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        type: string
-        description: 'Branch to run the workflow on'
-        default: 'main'
       targetPlatform:
         type: string
-        description: 'targetPlatform to build'
-        default: 'linux/amd64'
+        description: "targetPlatform to build"
+        default: "linux/amd64"
       runnerVersion:
         type: string
         description: Version of the runner being installed
@@ -51,7 +47,12 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.13.3'
+          python-version: "3.13.3"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.25.0
+          cache: false
 
       # dockerfile COPY command need file in context
       - name: Copy tool cache to docker context
