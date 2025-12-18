@@ -39,7 +39,8 @@ jobs:
     steps:
       - name: Display all inputs
         run: echo "${{ toJSON(github.event.inputs) }}"
-
+      - name: space
+        run: df -h
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
