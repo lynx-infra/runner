@@ -52,7 +52,9 @@ jobs:
           fi
           sudo mv "${RUNNER_TOOL_CACHE}" "${RUNNER_TOOL_CACHE}.old"
           sudo mkdir -p "${RUNNER_TOOL_CACHE}"
-
+      - name: debug
+        run: |
+          sleep 3600
       - name: Setup Python
         id: setup-python
         uses: actions/setup-python@v4
