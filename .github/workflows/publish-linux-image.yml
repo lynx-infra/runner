@@ -44,6 +44,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.branch }}
+      - name: debug-1
+        run: |
+          echo ${RUNNER_TOOL_CACHE}
+          sleep 3600
 
       - name: Clear any existing tool cache
         run: |
@@ -52,7 +56,7 @@ jobs:
           fi
           sudo mv "${RUNNER_TOOL_CACHE}" "${RUNNER_TOOL_CACHE}.old"
           sudo mkdir -p "${RUNNER_TOOL_CACHE}"
-      - name: debug
+      - name: debug-2
         run: |
           sleep 3600
       - name: Setup Python
