@@ -30,6 +30,9 @@ RUN Invoke-WebRequest -UseBasicParsing https://aka.ms/vs/17/release/vs_buildtool
         --add Microsoft.VisualStudio.Component.VC.Tools.ARM `
         --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 `
         --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
+        --add Microsoft.VisualStudio.Workload.NativeDesktop `
+        --add Microsoft.VisualStudio.Component.VC.Llvm.Clang `
+        --add Microsoft.VisualStudio.Component.VC.Llvm.Clang.Tools `
         --add Microsoft.VisualStudio.Workload.AzureBuildTools `
         --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 `
         --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 `
