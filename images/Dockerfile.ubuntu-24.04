@@ -63,6 +63,7 @@ RUN apt-get update -y \
     jq \
     sudo \
     iptables \
+    libc6-dbg \
     # zstd \
     && rm -rf /var/lib/apt/lists/*
 
