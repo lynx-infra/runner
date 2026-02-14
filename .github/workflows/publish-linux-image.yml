@@ -101,7 +101,7 @@ jobs:
           tar -czf tool_cache_${{ matrix.distro }}.tar.gz *
 
       - name: Upload tool cache artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: toolcache-${{ matrix.distro }}
           path: ${{ runner.tool_cache }}/tool_cache_${{ matrix.distro }}.tar.gz
