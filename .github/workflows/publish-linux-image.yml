@@ -1,4 +1,4 @@
-name: Publish Linux Runner Images New
+name: Publish Linux Runner Images
 
 on:
   workflow_dispatch:
