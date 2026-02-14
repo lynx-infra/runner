@@ -81,6 +81,7 @@ RUN apt-get install -y --no-install-recommends \
     jq \
     sudo \
     iptables \
+    xz-utils \
     # zstd \
     && rm -rf /var/lib/apt/lists/*
 
