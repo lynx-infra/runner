@@ -198,6 +198,11 @@ RUN echo $ANDROID_NDK_LIST | awk -F ';' '{ for(i=1; i<=NF; i++) print $i }' \
 RUN avdmanager --verbose create avd --force --name "Nexus_5_API_28" \
       --package "system-images;android-28;google_apis;x86" \
       --force -d "Nexus 5"
+# Check AVD and System Image
+RUN echo "--- Verifying AVD and System Image ---" && \
+    sdkmanager --list --sdk_root=$ANDROID_HOME | grep "system-images;android-28;google_apis;x86" && \
+    emulator -list-avds && \
+    echo "--- Verification Succeeded ---"
 
 USER root
 ENV ImageOS=ubuntu22
