@@ -18,7 +18,6 @@ on:
         options:
           - all
           - ubuntu-22.04
-          - ubuntu-22.04-physical
           - ubuntu-24.04
       runnerVersion:
         type: string
@@ -51,7 +50,6 @@ jobs:
             const imageName = process.env.INPUT_IMAGENAME;
             const allConfigs = [
               { imageName: 'ubuntu-22.04', runs_on: 'raw-ubuntu-22.04', distro: 'ubuntu-22.04' },
-              { imageName: 'ubuntu-22.04-physical', runs_on: 'raw-ubuntu-22.04', distro: 'ubuntu-22.04' },
               { imageName: 'ubuntu-24.04', runs_on: 'raw-ubuntu-24.04', distro: 'ubuntu-24.04' }
             ];
 
