@@ -231,7 +231,7 @@ COPY .env .
 COPY --chmod=0755 hook.sh /opt/runner/hook.sh
 
 # Launch dockerd daemon
-COPY --chmod=0755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY --chmod=0755 entrypoint_kvm.sh /usr/local/bin/entrypoint_kvm.sh
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint_kvm.sh"]
 CMD ["bash"]
