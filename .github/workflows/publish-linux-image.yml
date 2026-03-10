@@ -84,6 +84,7 @@ jobs:
     steps:
       - name: Clear any existing tool cache
         run: |
+          env
           mv "${{ runner.tool_cache }}" "${{ runner.tool_cache }}.old"
           mkdir -p "${{ runner.tool_cache }}"
 
@@ -99,7 +100,8 @@ jobs:
           tar -czf tool_cache_${{ matrix.distro }}.tar.gz *
 
       - name: Upload tool cache artifact
-        uses: actions/upload-artifact@v4
+        #uses: actions/upload-artifact@v4
+        uses: lynx-infra/upload-artifact@332ec52e99f7cbf1fbbdc9bcc09280d49147d092
         with:
           name: toolcache-${{ matrix.distro }}
           path: ${{ runner.tool_cache }}/tool_cache_${{ matrix.distro }}.tar.gz
@@ -128,7 +130,8 @@ jobs:
           ref: ${{ github.event.inputs.branch }}
 
       - name: Download tool cache artifact
-        uses: actions/download-artifact@v4
+        #uses: actions/download-artifact@v4
+        uses: lynx-infra/download-artifact@79d9914484f933089c2840552cf439bac85debad
         with:
           name: toolcache-${{ matrix.distro }}
           path: ./toolcache_artifact
