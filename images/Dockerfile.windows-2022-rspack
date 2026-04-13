@@ -48,6 +48,7 @@ RUN Invoke-WebRequest -UseBasicParsing https://aka.ms/vs/17/release/vs_buildtool
         --add Microsoft.VisualStudio.Component.Graphics.Tools `
         --add Microsoft.VisualStudio.Component.VC.DiagnosticTools `
         --add Microsoft.VisualStudio.Component.Windows11SDK.22000 `
+        --add Microsoft.VisualStudio.Component.Windows11SDK.26100 `
         --add Microsoft.VisualStudio.Component.SecurityIssueAnalysis `
         --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest `
         --add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core `
@@ -62,9 +63,9 @@ RUN Invoke-WebRequest -UseBasicParsing https://aka.ms/vs/17/release/vs_buildtool
         --add Microsoft.VisualStudio.Workload.NativeDesktop | Out-Null; `
     # Cleanup
     del C:\vs_buildtools.exe; `
-    # Download Win10 SDK
-    Invoke-WebRequest -UseBasicParsing https://download.microsoft.com/download/9/7/9/97982c1d-d687-41be-9dd3-6d01e52ceb68/windowssdk/winsdksetup.exe -o C:\winsdksetup.exe; `
-    C:\winsdksetup.exe /quiet /norestart /log "C:/TEMP/Win10SDK-DesktopDebuggers-Install.log" | Out-Null; `
+    # Download Win11 SDK
+    Invoke-WebRequest -UseBasicParsing https://go.microsoft.com/fwlink/?linkid=2335755 -o C:\winsdksetup.exe; `
+    C:\winsdksetup.exe /quiet /norestart /log "C:/TEMP/Win11SDK-DesktopDebuggers-Install.log" | Out-Null; `
     del C:\winsdksetup.exe; `
     # Download rust
     Invoke-WebRequest -UseBasicParsing https://win.rustup.rs/x86_64 -o C:\rustup-init.exe; `
