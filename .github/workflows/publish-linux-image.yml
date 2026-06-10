@@ -19,6 +19,7 @@ on:
           - all
           - ubuntu-22.04
           - ubuntu-24.04
+          - ubuntu-26.04
       runnerVersion:
         type: string
         description: 'Runner app version'
@@ -50,7 +51,8 @@ jobs:
             const imageName = process.env.INPUT_IMAGENAME;
             const allConfigs = [
               { imageName: 'ubuntu-22.04', runs_on: 'raw-ubuntu-22.04', distro: 'ubuntu-22.04' },
-              { imageName: 'ubuntu-24.04', runs_on: 'raw-ubuntu-24.04', distro: 'ubuntu-24.04' }
+              { imageName: 'ubuntu-24.04', runs_on: 'raw-ubuntu-24.04', distro: 'ubuntu-24.04' },
+              { imageName: 'ubuntu-26.04', runs_on: 'raw-ubuntu-26.04', distro: 'ubuntu-26.04' }
             ];
 
             let include = [];

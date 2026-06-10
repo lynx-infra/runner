@@ -1,0 +1,14 @@
+deb http://mirrors.ivolces.com/ubuntu/ resolute main restricted universe multiverse
+deb-src http://mirrors.ivolces.com/ubuntu/ resolute main restricted universe multiverse
+
+deb http://mirrors.ivolces.com/ubuntu/ resolute-security main restricted universe multiverse
+deb-src http://mirrors.ivolces.com/ubuntu/ resolute-security main restricted universe multiverse
+
+deb http://mirrors.ivolces.com/ubuntu/ resolute-updates main restricted universe multiverse
+deb-src http://mirrors.ivolces.com/ubuntu/ resolute-updates main restricted universe multiverse
+
+# deb http://mirrors.ivolces.com/ubuntu/ resolute-proposed main restricted universe multiverse
+# deb-src http://mirrors.ivolces.com/ubuntu/ resolute-proposed main restricted universe multiverse
+
+deb http://mirrors.ivolces.com/ubuntu/ resolute-backports main restricted universe multiverse
+deb-src http://mirrors.ivolces.com/ubuntu/ resolute-backports main restricted universe multiverse
