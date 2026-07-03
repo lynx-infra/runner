@@ -52,7 +52,8 @@ jobs:
             const allConfigs = [
               { imageName: 'ubuntu-22.04', runs_on: 'raw-ubuntu-22.04', distro: 'ubuntu-22.04' },
               { imageName: 'ubuntu-24.04', runs_on: 'raw-ubuntu-24.04', distro: 'ubuntu-24.04' },
-              { imageName: 'ubuntu-26.04', runs_on: 'raw-ubuntu-26.04', distro: 'ubuntu-26.04' }
+              // Reuse the Ubuntu 24.04 build host; prepare the toolcache on Ubuntu 26.04 via distro.
+              { imageName: 'ubuntu-26.04', runs_on: 'raw-ubuntu-24.04', distro: 'ubuntu-26.04' }
             ];
 
             let include = [];
