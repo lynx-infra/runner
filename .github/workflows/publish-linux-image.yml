@@ -29,7 +29,7 @@ on:
 
 env:
   HOST_TMP_TOOL_CACHE: hosttmptoolcache
-  PYTHON_TOOLCACHE_VERSION: '3.13.3'
+  PYTHON_TOOLCACHE_VERSION: '3.13.14'
 
 jobs:
   select-matrix:
