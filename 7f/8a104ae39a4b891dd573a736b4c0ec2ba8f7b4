@@ -1,0 +1,24 @@
+images/Dockerfile.ubuntu-26.04
+  s_b8c4a759953e2d::t_ee963bf3b4eba0 19,23
+  s_b8c4a759953e2d::t_4eed7cf5caee04 68
+images/git-core-ppa-4096.asc
+  s_b8c4a759953e2d::t_422b96ef718957 1-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "7f8a104ae39a4b891dd573a736b4c0ec2ba8f7b4",
+  "prompts": {},
+  "sessions": {
+    "s_b8c4a759953e2d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2701-c526-79c2-aab6-19249635e5ba",
+        "model": "unknown"
+      },
+      "human_author": "fenghao <38210394+deanjingshui@users.noreply.github.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
