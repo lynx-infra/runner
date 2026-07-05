@@ -1,0 +1,21 @@
+images/git-core-ppa-4096.asc
+  s_b8c4a759953e2d::t_422b96ef718957 1-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "68ea8b894394d71792869f3bf8db35d6c2e62481",
+  "prompts": {},
+  "sessions": {
+    "s_b8c4a759953e2d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2701-c526-79c2-aab6-19249635e5ba",
+        "model": "unknown"
+      },
+      "human_author": "fenghao <38210394+deanjingshui@users.noreply.github.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
