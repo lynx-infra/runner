@@ -4,6 +4,8 @@ ENV TZ=Asia/Shanghai \
     DEBIAN_FRONTEND=noninteractive
 
 ARG PYTHON_VERSION="3.12"
+COPY sources.list.ubuntu-26.04 /etc/apt/sources.list
+RUN rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources || true
 
 # 基础工具
 RUN apt-get update -y \
