@@ -1,0 +1,23 @@
+images/Dockerfile.ubuntu-26.04
+  s_b8c4a759953e2d::t_754e3f5984681e 7
+images/sources.list.ubuntu-26.04
+  s_b8c4a759953e2d::t_c986e0dd898593 1-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "fda768538777c399f65bac89d953629a22382be5",
+  "prompts": {},
+  "sessions": {
+    "s_b8c4a759953e2d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2701-c526-79c2-aab6-19249635e5ba",
+        "model": "unknown"
+      },
+      "human_author": "fenghao <38210394+deanjingshui@users.noreply.github.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
