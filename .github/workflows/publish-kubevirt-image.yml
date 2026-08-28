@@ -48,6 +48,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6.0.2
 
+      - name: Show manual inputs
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          BASE_IMAGE_URL: ${{ inputs.baseImageUrl }}
+          BASE_IMAGE_SHA256: ${{ inputs.baseImageSha256 }}
+          RUNNER_VERSION: ${{ inputs.runnerVersion }}
+          RUNNER_ARCHIVE_SHA256: ${{ inputs.runnerArchiveSha256 }}
+          PUBLISH: ${{ inputs.publish }}
+        run: |
+          printf 'baseImageUrl=%s\n' "${BASE_IMAGE_URL}"
+          printf 'baseImageSha256=%s\n' "${BASE_IMAGE_SHA256}"
+          printf 'runnerVersion=%s\n' "${RUNNER_VERSION}"
+          printf 'runnerArchiveSha256=%s\n' "${RUNNER_ARCHIVE_SHA256}"
+          printf 'publish=%s\n' "${PUBLISH}"
+
       - name: Check scripts and containerDisk layout
         run: |
           bash -n "${IMAGE_DIR}/build-guest-disk.sh"
