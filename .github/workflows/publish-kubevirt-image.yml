@@ -1,0 +1,139 @@
+name: Publish KubeVirt Runner Guest Image
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/publish-kubevirt-image.yml
+      - images/kubevirt/**
+  workflow_dispatch:
+    inputs:
+      baseImageUrl:
+        type: string
+        description: HTTPS URL of the qcow2 Ubuntu cloud image
+        required: true
+      baseImageSha256:
+        type: string
+        description: Expected SHA256 of the cloud image
+        required: true
+      runnerVersion:
+        type: string
+        description: GitHub Actions runner version without the v prefix
+        default: '2.336.0'
+        required: true
+      runnerArchiveSha256:
+        type: string
+        description: Expected SHA256 of the official linux-x64 runner archive
+        required: true
+      publish:
+        type: boolean
+        description: Push the containerDisk image after building it
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-kubevirt-runner-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: github-action-runners/kubevirt-ubuntu-guest
+  IMAGE_DIR: images/kubevirt
+
+jobs:
+  validate:
+    name: Validate build inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Check scripts and containerDisk layout
+        run: |
+          bash -n "${IMAGE_DIR}/build-guest-disk.sh"
+          test -x "${IMAGE_DIR}/build-guest-disk.sh"
+          test "$(grep -c '^FROM scratch$' "${IMAGE_DIR}/Dockerfile.containerdisk")" -eq 1
+          test "$(grep -c '/disk/' "${IMAGE_DIR}/Dockerfile.containerdisk")" -ge 1
+
+      - name: Validate dispatch input format
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          BASE_IMAGE_URL: ${{ inputs.baseImageUrl }}
+          BASE_IMAGE_SHA256: ${{ inputs.baseImageSha256 }}
+          RUNNER_VERSION: ${{ inputs.runnerVersion }}
+          RUNNER_ARCHIVE_SHA256: ${{ inputs.runnerArchiveSha256 }}
+        run: |
+          [[ "${BASE_IMAGE_URL}" == https://* ]]
+          [[ "${BASE_IMAGE_SHA256}" =~ ^[a-fA-F0-9]{64}$ ]]
+          [[ "${RUNNER_ARCHIVE_SHA256}" =~ ^[a-fA-F0-9]{64}$ ]]
+          [[ "${RUNNER_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+
+  build:
+    name: Build and optionally publish containerDisk
+    needs: validate
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: raw-ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Install guest image build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libguestfs-tools qemu-utils
+
+      - name: Download and verify immutable build inputs
+        env:
+          BASE_IMAGE_URL: ${{ inputs.baseImageUrl }}
+          BASE_IMAGE_SHA256: ${{ inputs.baseImageSha256 }}
+          RUNNER_VERSION: ${{ inputs.runnerVersion }}
+          RUNNER_ARCHIVE_SHA256: ${{ inputs.runnerArchiveSha256 }}
+        run: |
+          mkdir -p "${RUNNER_TEMP}/kubevirt-inputs"
+          curl --fail --location --retry 3 --output "${RUNNER_TEMP}/kubevirt-inputs/base.qcow2" "${BASE_IMAGE_URL}"
+          curl --fail --location --retry 3 --output "${RUNNER_TEMP}/kubevirt-inputs/runner.tar.gz" \
+            "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz"
+          echo "${BASE_IMAGE_SHA256}  ${RUNNER_TEMP}/kubevirt-inputs/base.qcow2" | sha256sum --check --strict
+          echo "${RUNNER_ARCHIVE_SHA256}  ${RUNNER_TEMP}/kubevirt-inputs/runner.tar.gz" | sha256sum --check --strict
+
+      - name: Build and validate guest disk
+        run: |
+          "${IMAGE_DIR}/build-guest-disk.sh" \
+            --base-image "${RUNNER_TEMP}/kubevirt-inputs/base.qcow2" \
+            --runner-archive "${RUNNER_TEMP}/kubevirt-inputs/runner.tar.gz" \
+            --output "${GITHUB_WORKSPACE}/${IMAGE_DIR}/disk.qcow2"
+          qemu-img info --output=json "${IMAGE_DIR}/disk.qcow2"
+          qemu-img check "${IMAGE_DIR}/disk.qcow2"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log into registry ${{ vars.REGISTRY }}
+        if: inputs.publish
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ vars.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build containerDisk and optionally push
+        id: build-and-push
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ env.IMAGE_DIR }}
+          file: ${{ env.IMAGE_DIR }}/Dockerfile.containerdisk
+          platforms: linux/amd64
+          push: ${{ inputs.publish }}
+          load: ${{ !inputs.publish }}
+          tags: ${{ inputs.publish && format('{0}/{1}:sha-{2}', vars.REGISTRY, env.IMAGE_NAME, github.sha) || format('kubevirt-runner-guest:sha-{0}', github.sha) }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.description=KubeVirt containerDisk for an ARC ephemeral GitHub Actions runner
+
+      - name: Show immutable image reference
+        if: inputs.publish
+        env:
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        run: echo "${{ vars.REGISTRY }}/${IMAGE_NAME}@${DIGEST}"
