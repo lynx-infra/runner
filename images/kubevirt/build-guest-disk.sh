@@ -39,7 +39,7 @@ if [[ -z "$base_image" || -z "$runner_archive" || -z "$output" ]]; then
   exit 2
 fi
 
-for command_name in qemu-img virt-customize; do
+for command_name in qemu-img virt-customize virt-filesystems virt-resize; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     echo "Required command is missing: $command_name" >&2
     exit 1
@@ -71,10 +71,24 @@ mkdir -p "$output_dir"
 work_dir="$(mktemp -d "${TMPDIR:-/tmp}/arc-runner-guest.XXXXXX")"
 trap 'rm -rf "$work_dir"' EXIT
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+apt_sources="$script_dir/../sources.list.ubuntu-24.04"
+if [[ ! -f "$apt_sources" ]]; then
+  echo "APT mirror configuration does not exist: $apt_sources" >&2
+  exit 1
+fi
+
 disk="$work_dir/disk.qcow2"
 qemu-img info --output=json "$base_image"
-qemu-img convert -f qcow2 -O qcow2 "$base_image" "$disk"
-qemu-img resize "$disk" 40G
+virt-filesystems --partitions --long --human-readable -a "$base_image"
+qemu-img create -f qcow2 "$disk" 40G
+virt-resize \
+  --format qcow2 \
+  --output-format qcow2 \
+  --expand /dev/sda1 \
+  "$base_image" \
+  "$disk"
+qemu-img check "$disk"
 
 archive_name="$(basename "$runner_archive")"
 cp "$runner_archive" "$work_dir/$archive_name"
@@ -82,6 +96,8 @@ cp "$runner_archive" "$work_dir/$archive_name"
 virt-customize \
   -a "$disk" \
   --copy-in "$work_dir/$archive_name:/tmp" \
+  --upload "$apt_sources:/etc/apt/sources.list" \
+  --run-command 'rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources' \
   --run-command 'id runner >/dev/null 2>&1 || useradd --create-home --shell /bin/bash --uid 1001 runner' \
   --run-command 'apt-get update' \
   --install 'ca-certificates,cloud-init,curl,git,jq,sudo' \
