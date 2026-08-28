@@ -71,6 +71,8 @@ download either input, build a guest disk, or access registry credentials.
 
 - user `runner` exists with home `/home/runner`;
 - runner files are installed directly in `/home/runner`;
+- Git, Node.js, npm, and the Docker CLI are installed and the `runner` user is
+  a member of the `docker` and `sudo` groups;
 - cloud-init and systemd are enabled;
 - the image boots without a JIT configuration but does not register a runner;
 - the containerDisk artifact is `/disk/disk.qcow2` and is owned by UID/GID 107.

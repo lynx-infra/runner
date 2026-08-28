@@ -106,11 +106,14 @@ virt-customize \
   --run-command 'rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources' \
   --run-command 'id runner >/dev/null 2>&1 || useradd --create-home --shell /bin/bash --uid 1001 runner' \
   --run-command 'apt-get update' \
-  --install 'ca-certificates,cloud-init,curl,git,jq,sudo' \
+  --install 'ca-certificates,cloud-init,curl,docker.io,git,jq,nodejs,npm,sudo' \
   --run-command "tar -xzf /tmp/$archive_name -C /home/runner" \
   --run-command 'cd /home/runner && ./bin/installdependencies.sh' \
   --run-command "rm -f /tmp/$archive_name" \
+  --run-command 'usermod -aG docker,sudo runner' \
+  --run-command 'printf "%s\n" "runner ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/runner && chmod 0440 /etc/sudoers.d/runner' \
   --run-command 'chown -R runner:runner /home/runner' \
+  --run-command 'git --version && node --version && npm --version && docker --version' \
   --run-command 'grub-install --target=i386-pc /dev/sda' \
   --run-command 'update-grub' \
   --run-command 'systemctl enable cloud-init-local.service cloud-init.service cloud-config.service cloud-final.service' \
