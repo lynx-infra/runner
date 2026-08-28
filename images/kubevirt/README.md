@@ -20,7 +20,7 @@ the guest disk.
 Requirements:
 
 - `qemu-img`
-- `virt-customize` from libguestfs
+- `virt-customize`, `virt-filesystems`, and `virt-resize` from libguestfs
 - Docker or another OCI builder
 
 ```bash
@@ -38,6 +38,13 @@ docker build \
 The Adapter injects the JIT configuration through KubeVirt cloud-init. The
 guest image contains no registration token and does not start a persistent
 runner service by itself.
+
+The build creates a new 40 GiB qcow2 disk and uses `virt-resize` to expand the
+Noble cloud image root partition (`/dev/sda1`) and its filesystem. Merely
+resizing the qcow2 container is insufficient. Before any guest-side APT
+operation, it also installs the repository's
+`images/sources.list.ubuntu-24.04` and removes the cloud image's default
+`archive.ubuntu.com` and `security.ubuntu.com` source definitions.
 
 ## GitHub Actions publication
 
