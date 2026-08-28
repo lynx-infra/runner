@@ -61,8 +61,12 @@ jobs:
 
       - name: Check scripts and containerDisk layout
         run: |
-          bash -n "${IMAGE_DIR}/build-guest-disk.sh"
+          bash -n \
+            "${IMAGE_DIR}/build-guest-disk.sh" \
+            "${IMAGE_DIR}/validate-guest-boot.sh"
           test -x "${IMAGE_DIR}/build-guest-disk.sh"
+          test -x "${IMAGE_DIR}/validate-guest-boot.sh"
+          test -s "${IMAGE_DIR}/grub-serial.cfg"
           test "$(grep -c '^FROM scratch$' "${IMAGE_DIR}/Dockerfile.containerdisk")" -eq 1
           test "$(grep -c '/disk/' "${IMAGE_DIR}/Dockerfile.containerdisk")" -ge 1
 
@@ -90,7 +94,7 @@ jobs:
       - name: Install guest image build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes libguestfs-tools qemu-utils
+          sudo apt-get install --yes libguestfs-tools qemu-system-x86 qemu-utils
 
       - name: Download and verify immutable build inputs
         env:
@@ -119,6 +123,7 @@ jobs:
             --output "${GITHUB_WORKSPACE}/${IMAGE_DIR}/disk.qcow2"
           qemu-img info --output=json "${IMAGE_DIR}/disk.qcow2"
           qemu-img check "${IMAGE_DIR}/disk.qcow2"
+          "${IMAGE_DIR}/validate-guest-boot.sh" "${IMAGE_DIR}/disk.qcow2"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4

@@ -73,8 +73,13 @@ trap 'rm -rf "$work_dir"' EXIT
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 apt_sources="$script_dir/../sources.list.ubuntu-24.04"
+grub_defaults="$script_dir/grub-serial.cfg"
 if [[ ! -f "$apt_sources" ]]; then
   echo "APT mirror configuration does not exist: $apt_sources" >&2
+  exit 1
+fi
+if [[ ! -f "$grub_defaults" ]]; then
+  echo "GRUB serial configuration does not exist: $grub_defaults" >&2
   exit 1
 fi
 
@@ -97,6 +102,7 @@ virt-customize \
   -a "$disk" \
   --copy-in "$work_dir/$archive_name:/tmp" \
   --upload "$apt_sources:/etc/apt/sources.list" \
+  --upload "$grub_defaults:/etc/default/grub.d/99-arc-runner-serial.cfg" \
   --run-command 'rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources' \
   --run-command 'id runner >/dev/null 2>&1 || useradd --create-home --shell /bin/bash --uid 1001 runner' \
   --run-command 'apt-get update' \
@@ -105,6 +111,8 @@ virt-customize \
   --run-command 'cd /home/runner && ./bin/installdependencies.sh' \
   --run-command "rm -f /tmp/$archive_name" \
   --run-command 'chown -R runner:runner /home/runner' \
+  --run-command 'grub-install --target=i386-pc /dev/sda' \
+  --run-command 'update-grub' \
   --run-command 'systemctl enable cloud-init-local.service cloud-init.service cloud-config.service cloud-final.service' \
   --truncate '/etc/machine-id' \
   --run-command 'rm -f /var/lib/dbus/machine-id' \
