@@ -22,10 +22,6 @@ on:
         description: GitHub Actions runner version without the v prefix
         default: '2.336.0'
         required: true
-      runnerArchiveSha256:
-        type: string
-        description: Expected SHA256 of the official linux-x64 runner archive
-        required: true
       publish:
         type: boolean
         description: Push the containerDisk image after building it
@@ -56,13 +52,11 @@ jobs:
           BASE_IMAGE_URL: ${{ inputs.baseImageUrl }}
           BASE_IMAGE_SHA256_URL: ${{ inputs.baseImageSha256Url }}
           RUNNER_VERSION: ${{ inputs.runnerVersion }}
-          RUNNER_ARCHIVE_SHA256: ${{ inputs.runnerArchiveSha256 }}
           PUBLISH: ${{ inputs.publish }}
         run: |
           printf 'baseImageUrl=%s\n' "${BASE_IMAGE_URL}"
           printf 'baseImageSha256Url=%s\n' "${BASE_IMAGE_SHA256_URL}"
           printf 'runnerVersion=%s\n' "${RUNNER_VERSION}"
-          printf 'runnerArchiveSha256=%s\n' "${RUNNER_ARCHIVE_SHA256}"
           printf 'publish=%s\n' "${PUBLISH}"
 
       - name: Check scripts and containerDisk layout
@@ -78,11 +72,9 @@ jobs:
           BASE_IMAGE_URL: ${{ inputs.baseImageUrl }}
           BASE_IMAGE_SHA256_URL: ${{ inputs.baseImageSha256Url }}
           RUNNER_VERSION: ${{ inputs.runnerVersion }}
-          RUNNER_ARCHIVE_SHA256: ${{ inputs.runnerArchiveSha256 }}
         run: |
           [[ "${BASE_IMAGE_URL}" == https://* ]]
           [[ "${BASE_IMAGE_SHA256_URL}" == https://* ]]
-          [[ "${RUNNER_ARCHIVE_SHA256}" =~ ^[a-fA-F0-9]{64}$ ]]
           [[ "${RUNNER_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
 
   build:
@@ -105,7 +97,6 @@ jobs:
           BASE_IMAGE_URL: ${{ inputs.baseImageUrl }}
           BASE_IMAGE_SHA256_URL: ${{ inputs.baseImageSha256Url }}
           RUNNER_VERSION: ${{ inputs.runnerVersion }}
-          RUNNER_ARCHIVE_SHA256: ${{ inputs.runnerArchiveSha256 }}
         run: |
           input_dir="${RUNNER_TEMP}/kubevirt-inputs"
           image_name="$(basename "${BASE_IMAGE_URL%%\?*}")"
@@ -116,7 +107,6 @@ jobs:
           curl --fail --location --retry 3 --output "${RUNNER_TEMP}/kubevirt-inputs/runner.tar.gz" \
             "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz"
           (cd "${input_dir}" && sha256sum --check --strict "${checksum_name}")
-          echo "${RUNNER_ARCHIVE_SHA256}  ${RUNNER_TEMP}/kubevirt-inputs/runner.tar.gz" | sha256sum --check --strict
           if [[ "${image_name}" != "base.img" ]]; then
             mv "${input_dir}/${image_name}" "${input_dir}/base.img"
           fi
