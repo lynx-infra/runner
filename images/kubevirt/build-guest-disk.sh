@@ -72,6 +72,7 @@ work_dir="$(mktemp -d "${TMPDIR:-/tmp}/arc-runner-guest.XXXXXX")"
 trap 'rm -rf "$work_dir"' EXIT
 
 disk="$work_dir/disk.qcow2"
+qemu-img info --output=json "$base_image"
 qemu-img convert -f qcow2 -O qcow2 "$base_image" "$disk"
 qemu-img resize "$disk" 40G
 

@@ -42,11 +42,13 @@ runner service by itself.
 ## GitHub Actions publication
 
 The normal build path is `.github/workflows/publish-kubevirt-image.yml`.
-Trigger it manually and provide the HTTPS cloud-image URL, its SHA256, the
-runner version, and the official runner archive SHA256. Both downloads are
-verified before `virt-customize` runs. The `publish` input defaults to `false`;
-when enabled, the workflow pushes `sha-<git-sha>` and prints the immutable
-digest reference.
+Trigger it manually and provide the HTTPS cloud-image URL, its checksum URL,
+the runner version, and the official runner archive SHA256. The cloud-image
+and checksum URL inputs default to the mirrored TOS objects. The checksum file
+must use standard `sha256sum` format and reference the image object's
+basename. Both downloads are verified before `virt-customize` runs. The
+`publish` input defaults to `false`; when enabled, the workflow pushes
+`sha-<git-sha>` and prints the immutable digest reference.
 
 Pull requests only validate the script and containerDisk layout. They do not
 download either input, build a guest disk, or access registry credentials.
