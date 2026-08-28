@@ -19,7 +19,7 @@ the guest disk.
 
 Requirements:
 
-- `qemu-img`
+- `qemu-img` and `qemu-system-x86_64`
 - `virt-customize`, `virt-filesystems`, and `virt-resize` from libguestfs
 - Docker or another OCI builder
 
@@ -45,6 +45,12 @@ resizing the qcow2 container is insufficient. Before any guest-side APT
 operation, it also installs the repository's
 `images/sources.list.ubuntu-24.04` and removes the cloud image's default
 `archive.ubuntu.com` and `security.ubuntu.com` source definitions.
+
+Ubuntu's cloud image uses non-sequential GPT partition numbers. `virt-resize`
+can renumber the root partition while rebuilding that table, so the build
+reinstalls GRUB after resizing. It also enables the serial console and runs a
+QEMU boot smoke test before the containerDisk is built; structural
+`qemu-img check` success alone does not prove that the guest is bootable.
 
 ## GitHub Actions publication
 
