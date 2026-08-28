@@ -43,8 +43,9 @@ runner service by itself.
 
 The normal build path is `.github/workflows/publish-kubevirt-image.yml`.
 Trigger it manually and provide the HTTPS cloud-image URL, its checksum URL,
-the runner version, and the official runner archive SHA256. The cloud-image
-and checksum URL inputs default to the mirrored TOS objects. The checksum file
+and the runner version. The runner archive is downloaded directly from the
+official GitHub Actions runner release over HTTPS. The cloud-image and
+checksum URL inputs default to the mirrored TOS objects. The checksum file
 must use standard `sha256sum` format and reference the image object's
 basename. Both downloads are verified before `virt-customize` runs. The
 `publish` input defaults to `false`; when enabled, the workflow pushes
