@@ -10,10 +10,12 @@ on:
       baseImageUrl:
         type: string
         description: HTTPS URL of the qcow2 Ubuntu cloud image
+        default: 'https://actions.tos-ap-southeast-1.bytepluses.com/images/noble-server-cloudimg-amd64.img'
         required: true
-      baseImageSha256:
+      baseImageSha256Url:
         type: string
-        description: Expected SHA256 of the cloud image
+        description: HTTPS URL of the sha256sum-compatible checksum file
+        default: 'https://actions.tos-ap-southeast-1.bytepluses.com/images/noble-server-cloudimg-amd64.img.sha256'
         required: true
       runnerVersion:
         type: string
@@ -52,13 +54,13 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         env:
           BASE_IMAGE_URL: ${{ inputs.baseImageUrl }}
-          BASE_IMAGE_SHA256: ${{ inputs.baseImageSha256 }}
+          BASE_IMAGE_SHA256_URL: ${{ inputs.baseImageSha256Url }}
           RUNNER_VERSION: ${{ inputs.runnerVersion }}
           RUNNER_ARCHIVE_SHA256: ${{ inputs.runnerArchiveSha256 }}
           PUBLISH: ${{ inputs.publish }}
         run: |
           printf 'baseImageUrl=%s\n' "${BASE_IMAGE_URL}"
-          printf 'baseImageSha256=%s\n' "${BASE_IMAGE_SHA256}"
+          printf 'baseImageSha256Url=%s\n' "${BASE_IMAGE_SHA256_URL}"
           printf 'runnerVersion=%s\n' "${RUNNER_VERSION}"
           printf 'runnerArchiveSha256=%s\n' "${RUNNER_ARCHIVE_SHA256}"
           printf 'publish=%s\n' "${PUBLISH}"
@@ -74,12 +76,12 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         env:
           BASE_IMAGE_URL: ${{ inputs.baseImageUrl }}
-          BASE_IMAGE_SHA256: ${{ inputs.baseImageSha256 }}
+          BASE_IMAGE_SHA256_URL: ${{ inputs.baseImageSha256Url }}
           RUNNER_VERSION: ${{ inputs.runnerVersion }}
           RUNNER_ARCHIVE_SHA256: ${{ inputs.runnerArchiveSha256 }}
         run: |
           [[ "${BASE_IMAGE_URL}" == https://* ]]
-          [[ "${BASE_IMAGE_SHA256}" =~ ^[a-fA-F0-9]{64}$ ]]
+          [[ "${BASE_IMAGE_SHA256_URL}" == https://* ]]
           [[ "${RUNNER_ARCHIVE_SHA256}" =~ ^[a-fA-F0-9]{64}$ ]]
           [[ "${RUNNER_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
 
@@ -101,21 +103,28 @@ jobs:
       - name: Download and verify immutable build inputs
         env:
           BASE_IMAGE_URL: ${{ inputs.baseImageUrl }}
-          BASE_IMAGE_SHA256: ${{ inputs.baseImageSha256 }}
+          BASE_IMAGE_SHA256_URL: ${{ inputs.baseImageSha256Url }}
           RUNNER_VERSION: ${{ inputs.runnerVersion }}
           RUNNER_ARCHIVE_SHA256: ${{ inputs.runnerArchiveSha256 }}
         run: |
-          mkdir -p "${RUNNER_TEMP}/kubevirt-inputs"
-          curl --fail --location --retry 3 --output "${RUNNER_TEMP}/kubevirt-inputs/base.qcow2" "${BASE_IMAGE_URL}"
+          input_dir="${RUNNER_TEMP}/kubevirt-inputs"
+          image_name="$(basename "${BASE_IMAGE_URL%%\?*}")"
+          checksum_name="$(basename "${BASE_IMAGE_SHA256_URL%%\?*}")"
+          mkdir -p "${input_dir}"
+          curl --fail --location --retry 3 --output "${input_dir}/${image_name}" "${BASE_IMAGE_URL}"
+          curl --fail --location --retry 3 --output "${input_dir}/${checksum_name}" "${BASE_IMAGE_SHA256_URL}"
           curl --fail --location --retry 3 --output "${RUNNER_TEMP}/kubevirt-inputs/runner.tar.gz" \
             "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz"
-          echo "${BASE_IMAGE_SHA256}  ${RUNNER_TEMP}/kubevirt-inputs/base.qcow2" | sha256sum --check --strict
+          (cd "${input_dir}" && sha256sum --check --strict "${checksum_name}")
           echo "${RUNNER_ARCHIVE_SHA256}  ${RUNNER_TEMP}/kubevirt-inputs/runner.tar.gz" | sha256sum --check --strict
+          if [[ "${image_name}" != "base.img" ]]; then
+            mv "${input_dir}/${image_name}" "${input_dir}/base.img"
+          fi
 
       - name: Build and validate guest disk
         run: |
           "${IMAGE_DIR}/build-guest-disk.sh" \
-            --base-image "${RUNNER_TEMP}/kubevirt-inputs/base.qcow2" \
+            --base-image "${RUNNER_TEMP}/kubevirt-inputs/base.img" \
             --runner-archive "${RUNNER_TEMP}/kubevirt-inputs/runner.tar.gz" \
             --output "${GITHUB_WORKSPACE}/${IMAGE_DIR}/disk.qcow2"
           qemu-img info --output=json "${IMAGE_DIR}/disk.qcow2"
