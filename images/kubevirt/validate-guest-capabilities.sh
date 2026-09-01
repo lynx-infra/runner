@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
+
+validation_failed=0
+trap 'validation_failed=1' ERR
 
 provision_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1090
@@ -33,7 +36,7 @@ python3 --version | grep -Eq "Python ${PYTHON_VERSION}([.]|$)"
 docker --version | grep -Fq "$DOCKER_VERSION"
 docker buildx version | grep -Fq "$BUILDX_VERSION"
 docker compose version | grep -Fq "${DOCKER_COMPOSE_VERSION#v}"
-dumb-init --version | grep -Fq "$DUMB_INIT_VERSION"
+dumb-init --version 2>&1 | grep -Fq "$DUMB_INIT_VERSION"
 git lfs version
 
 test -x /home/runner/bin/Runner.Listener
@@ -61,4 +64,8 @@ test -f /home/runner/.android/avd/Nexus_5_API_28.avd/config.ini
 grep -Fxq "RUNNER_TOOL_CACHE=/opt/hostedtoolcache" /etc/environment
 grep -Fxq "ImageOS=$IMAGE_OS" /etc/environment
 grep -Fxq "RUNNER_TOOL_CACHE=/opt/hostedtoolcache" /home/runner/.env
+if ((validation_failed)); then
+  echo "Guest dependency and capability contract failed." >&2
+  exit 1
+fi
 echo "Guest dependency and capability contract passed."
