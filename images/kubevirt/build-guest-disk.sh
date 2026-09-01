@@ -133,7 +133,7 @@ virt-customize \
   --upload "$grub_defaults:/etc/default/grub.d/99-arc-runner-serial.cfg" \
   --run-command 'rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources' \
   --run-command "/opt/runner-image/provision-ubuntu-24.04.sh /tmp/$archive_name" \
-  --run-command '/opt/runner-image/validate-guest-capabilities.sh' \
+  --run-command 'bash -x /opt/runner-image/validate-guest-capabilities.sh' \
   --run-command "rm -f /tmp/$archive_name" \
   --run-command 'grub-install --target=i386-pc /dev/sda' \
   --run-command 'update-grub' \
