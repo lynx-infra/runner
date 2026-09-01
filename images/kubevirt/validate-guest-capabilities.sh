@@ -10,12 +10,17 @@ source /etc/profile.d/runner-image.sh
 mapfile -t system_packages < <(sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' \
   "$provision_dir/ubuntu-24.04-system-packages.txt")
 for package_name in "${system_packages[@]}"; do
+  # qemu-kvm is a virtual package provided by qemu-system-x86 on Ubuntu 24.04,
+  # so it has no same-named dpkg status record to query.
+  if [[ "$package_name" == qemu-kvm ]]; then
+    continue
+  fi
   dpkg-query --show --showformat='${db:Status-Abbrev}\n' "$package_name" | grep -qx 'ii '
 done
 
 for command_name in \
   autoconf automake avdmanager bison cmake curl docker flex g++ gcc gdb git git-lfs \
-  java javac jq lldb make npm node pkg-config python3 sdkmanager ssh swig unzip xxd zip; do
+  java javac jq lldb make npm node pkg-config python3 qemu-system-x86_64 sdkmanager ssh swig unzip xxd zip; do
   command -v "$command_name" >/dev/null
 done
 
