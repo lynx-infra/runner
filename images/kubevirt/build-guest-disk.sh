@@ -74,6 +74,17 @@ trap 'rm -rf "$work_dir"' EXIT
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 apt_sources="$script_dir/../sources.list.ubuntu-24.04"
 grub_defaults="$script_dir/grub-serial.cfg"
+images_dir="$(cd "$script_dir/.." && pwd)"
+provision_inputs=(
+  "$script_dir/provision-ubuntu-24.04.sh"
+  "$script_dir/validate-guest-capabilities.sh"
+  "$images_dir/manifests/ubuntu-24.04.env"
+  "$images_dir/manifests/ubuntu-24.04-system-packages.txt"
+  "$images_dir/git-core-ppa.gpg"
+  "$images_dir/deadsnakes-ppa.gpg"
+  "$images_dir/.env"
+  "$images_dir/hook.sh"
+)
 if [[ ! -f "$apt_sources" ]]; then
   echo "APT mirror configuration does not exist: $apt_sources" >&2
   exit 1
@@ -82,6 +93,12 @@ if [[ ! -f "$grub_defaults" ]]; then
   echo "GRUB serial configuration does not exist: $grub_defaults" >&2
   exit 1
 fi
+for provision_input in "${provision_inputs[@]}"; do
+  if [[ ! -f "$provision_input" ]]; then
+    echo "Guest provisioning input does not exist: $provision_input" >&2
+    exit 1
+  fi
+done
 
 disk="$work_dir/disk.qcow2"
 qemu-img info --output=json "$base_image"
@@ -97,23 +114,27 @@ qemu-img check "$disk"
 
 archive_name="$(basename "$runner_archive")"
 cp "$runner_archive" "$work_dir/$archive_name"
+provision_dir="$work_dir/runner-image"
+mkdir -p "$provision_dir"
+install -m 0755 "$script_dir/provision-ubuntu-24.04.sh" "$provision_dir/provision-ubuntu-24.04.sh"
+install -m 0755 "$script_dir/validate-guest-capabilities.sh" "$provision_dir/validate-guest-capabilities.sh"
+install -m 0644 "$images_dir/manifests/ubuntu-24.04.env" "$provision_dir/ubuntu-24.04.env"
+install -m 0644 "$images_dir/manifests/ubuntu-24.04-system-packages.txt" "$provision_dir/ubuntu-24.04-system-packages.txt"
+install -m 0644 "$images_dir/git-core-ppa.gpg" "$provision_dir/git-core-ppa.gpg"
+install -m 0644 "$images_dir/deadsnakes-ppa.gpg" "$provision_dir/deadsnakes-ppa.gpg"
+install -m 0644 "$images_dir/.env" "$provision_dir/runner.env"
+install -m 0755 "$images_dir/hook.sh" "$provision_dir/hook.sh"
 
 virt-customize \
   -a "$disk" \
   --copy-in "$work_dir/$archive_name:/tmp" \
+  --copy-in "$provision_dir:/opt" \
   --upload "$apt_sources:/etc/apt/sources.list" \
   --upload "$grub_defaults:/etc/default/grub.d/99-arc-runner-serial.cfg" \
   --run-command 'rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources' \
-  --run-command 'id runner >/dev/null 2>&1 || useradd --create-home --shell /bin/bash --uid 1001 runner' \
-  --run-command 'apt-get update' \
-  --install 'ca-certificates,cloud-init,curl,docker.io,git,jq,nodejs,npm,sudo' \
-  --run-command "tar -xzf /tmp/$archive_name -C /home/runner" \
-  --run-command 'cd /home/runner && ./bin/installdependencies.sh' \
+  --run-command "/opt/runner-image/provision-ubuntu-24.04.sh /tmp/$archive_name" \
+  --run-command '/opt/runner-image/validate-guest-capabilities.sh' \
   --run-command "rm -f /tmp/$archive_name" \
-  --run-command 'usermod -aG docker,sudo runner' \
-  --run-command 'printf "%s\n" "runner ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/runner && chmod 0440 /etc/sudoers.d/runner' \
-  --run-command 'chown -R runner:runner /home/runner' \
-  --run-command 'git --version && node --version && npm --version && docker --version' \
   --run-command 'grub-install --target=i386-pc /dev/sda' \
   --run-command 'update-grub' \
   --run-command 'systemctl enable cloud-init-local.service cloud-init.service cloud-config.service cloud-final.service' \

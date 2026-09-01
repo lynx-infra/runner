@@ -28,58 +28,9 @@ RUN echo "deb [signed-by=/etc/apt/keyrings/git-core-ppa.gpg] https://launchpad.p
        > /etc/apt/sources.list.d/deadsnakes-ppa.list && \
     apt-get update -y
 
-RUN apt-get install -y --no-install-recommends \
-    wget \
-    gnupg \
-    apt-transport-https \
-    g++ \
-    gcc \
-    gdb \
-    xxd \
-    libc++abi-dev \
-    libc++-dev \
-    ssh \
-    libssl-dev \
-    sshpass \
-    git \
-    git-lfs \
-    autoconf \
-    automake \
-    make \
-    cmake \
-    pkg-config \
-    python$PYTHON_VERSION \
-    python3-pip \
-    libffi-dev \
-    zlib1g-dev \
-    libbz2-dev \
-    liblzma-dev \
-    libc6-dbg \
-    unzip \
-    zip \
-    openjdk-11-jdk \
-    telnet \
-    libreadline-dev \
-    libncurses6 \
-    vim \
-    lsof \
-    swig \
-    net-tools \
-    netcat-traditional \
-    default-libmysqlclient-dev \
-    qemu-kvm \
-    systemd \
-    tzdata \
-    locales \
-    flex \
-    bison \
-    lldb \
-    libunwind8 \
-    jq \
-    sudo \
-    iptables \
-    xz-utils \
-    # zstd \
+COPY manifests/ubuntu-24.04-system-packages.txt /opt/runner-image/manifests/ubuntu-24.04-system-packages.txt
+RUN xargs -r apt-get install -y --no-install-recommends \
+      < /opt/runner-image/manifests/ubuntu-24.04-system-packages.txt \
     && rm -rf /var/lib/apt/lists/*
 
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
