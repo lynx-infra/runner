@@ -122,7 +122,7 @@ mkdir -p "$python_extract_dir"
 tar -xzf "$python_archive" -C "$python_extract_dir"
 (
   cd "$python_extract_dir"
-  AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache RUNNER_TOOL_CACHE=/opt/hostedtoolcache ./setup.sh
+  AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache RUNNER_TOOL_CACHE=/opt/hostedtoolcache bash ./setup.sh
 )
 
 android_home=/home/runner/Android/SDK
