@@ -52,6 +52,19 @@ reinstalls GRUB after resizing. It also enables the serial console and runs a
 QEMU boot smoke test before the containerDisk is built; structural
 `qemu-img check` success alone does not prove that the guest is bootable.
 
+The guest provisioning path aligns its system package set and explicitly
+versioned tools with `images/Dockerfile.ubuntu-24.04`. The shared inputs are:
+
+- `images/manifests/ubuntu-24.04-system-packages.txt` for the APT package set;
+- `images/manifests/ubuntu-24.04.env` for Python, Docker CLI, Buildx, Compose,
+  Android, dumb-init, runner hooks, and tool-cache versions;
+- `provision-ubuntu-24.04.sh` for guest installation;
+- `validate-guest-capabilities.sh` for the image-build gate.
+
+The VM additionally installs platform-specific `cloud-init`, a Docker daemon,
+Node.js, and npm. GRUB, systemd services, machine-id cleanup, and the
+containerDisk layout remain VM-only concerns.
+
 ## GitHub Actions publication
 
 The normal build path is `.github/workflows/publish-kubevirt-image.yml`.
@@ -71,8 +84,10 @@ download either input, build a guest disk, or access registry credentials.
 
 - user `runner` exists with home `/home/runner`;
 - runner files are installed directly in `/home/runner`;
-- Git, Node.js, npm, and the Docker CLI are installed and the `runner` user is
-  a member of the `docker` and `sudo` groups;
+- the Ubuntu 24.04 package manifest, Python/Java toolchain, Docker CLI,
+  Buildx, Compose, Android SDK/NDK, Python tool cache, Git LFS, runner hooks,
+  Node.js, and npm pass `validate-guest-capabilities.sh`;
+- the `runner` user is a member of the `docker` and `sudo` groups;
 - cloud-init and systemd are enabled;
 - the image boots without a JIT configuration but does not register a runner;
 - the containerDisk artifact is `/disk/disk.qcow2` and is owned by UID/GID 107.

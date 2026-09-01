@@ -4,6 +4,14 @@ on:
   pull_request:
     paths:
       - .github/workflows/publish-kubevirt-image.yml
+      - images/Dockerfile.ubuntu-24.04
+      - images/manifests/ubuntu-24.04.env
+      - images/manifests/ubuntu-24.04-system-packages.txt
+      - images/sources.list.ubuntu-24.04
+      - images/git-core-ppa.gpg
+      - images/deadsnakes-ppa.gpg
+      - images/.env
+      - images/hook.sh
       - images/kubevirt/**
   workflow_dispatch:
     inputs:
@@ -63,12 +71,19 @@ jobs:
         run: |
           bash -n \
             "${IMAGE_DIR}/build-guest-disk.sh" \
-            "${IMAGE_DIR}/validate-guest-boot.sh"
+            "${IMAGE_DIR}/provision-ubuntu-24.04.sh" \
+            "${IMAGE_DIR}/validate-build-contract.sh" \
+            "${IMAGE_DIR}/validate-guest-boot.sh" \
+            "${IMAGE_DIR}/validate-guest-capabilities.sh"
           test -x "${IMAGE_DIR}/build-guest-disk.sh"
+          test -x "${IMAGE_DIR}/provision-ubuntu-24.04.sh"
+          test -x "${IMAGE_DIR}/validate-build-contract.sh"
           test -x "${IMAGE_DIR}/validate-guest-boot.sh"
+          test -x "${IMAGE_DIR}/validate-guest-capabilities.sh"
           test -s "${IMAGE_DIR}/grub-serial.cfg"
           test "$(grep -c '^FROM scratch$' "${IMAGE_DIR}/Dockerfile.containerdisk")" -eq 1
           test "$(grep -c '/disk/' "${IMAGE_DIR}/Dockerfile.containerdisk")" -ge 1
+          "${IMAGE_DIR}/validate-build-contract.sh"
 
       - name: Validate dispatch input format
         if: github.event_name == 'workflow_dispatch'
