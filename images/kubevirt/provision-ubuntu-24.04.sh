@@ -124,6 +124,12 @@ tar -xzf "$python_archive" -C "$python_extract_dir"
   cd "$python_extract_dir"
   AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache RUNNER_TOOL_CACHE=/opt/hostedtoolcache bash ./setup.sh
 )
+toolcache_python="/opt/hostedtoolcache/Python/${PYTHON_TOOLCACHE_VERSION}/x64/bin/python"
+"$toolcache_python" -m pip install --force-reinstall \
+  "pip==${PYTHON_TOOLCACHE_PIP_VERSION}" \
+  --disable-pip-version-check \
+  --no-warn-script-location
+test "$("$toolcache_python" -m pip --version | awk '{print $2}')" = "$PYTHON_TOOLCACHE_PIP_VERSION"
 
 android_home=/home/runner/Android/SDK
 install -d -o runner -g runner "$android_home"

@@ -35,4 +35,10 @@ grep -Fq "ENV ImageOS=$IMAGE_OS" "$dockerfile"
 grep -Fq "runner-container-hooks/releases/download/v${RUNNER_HOOKS_VERSION}/" "$dockerfile"
 grep -Fq "PYTHON_TOOLCACHE_VERSION: '${PYTHON_TOOLCACHE_VERSION}'" \
   "$repository_dir/.github/workflows/publish-linux-image.yml"
+grep -Fq "PYTHON_TOOLCACHE_PIP_VERSION: '${PYTHON_TOOLCACHE_PIP_VERSION}'" \
+  "$repository_dir/.github/workflows/publish-linux-image.yml"
+grep -Fq 'pip==${PYTHON_TOOLCACHE_PIP_VERSION}' \
+  "$repository_dir/.github/workflows/publish-linux-image.yml"
+grep -Fq 'pip==${PYTHON_TOOLCACHE_PIP_VERSION}' \
+  "$script_dir/provision-ubuntu-24.04.sh"
 echo "Ubuntu 24.04 container/guest build contract passed."

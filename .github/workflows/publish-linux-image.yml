@@ -30,6 +30,7 @@ on:
 env:
   HOST_TMP_TOOL_CACHE: hosttmptoolcache
   PYTHON_TOOLCACHE_VERSION: '3.13.14'
+  PYTHON_TOOLCACHE_PIP_VERSION: '26.1.2'
 
 jobs:
   select-matrix:
@@ -94,6 +95,11 @@ jobs:
         uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_TOOLCACHE_VERSION }}
+
+      - name: Pin pip in Python toolcache
+        run: |
+          python -m pip install --force-reinstall "pip==${PYTHON_TOOLCACHE_PIP_VERSION}"
+          test "$(python -m pip --version | awk '{print $2}')" = "${PYTHON_TOOLCACHE_PIP_VERSION}"
 
       # Ref:https://docs.github.com/en/enterprise-server@3.15/admin/managing-github-actions-for-your-enterprise/managing-access-to-actions-from-githubcom/setting-up-the-tool-cache-on-self-hosted-runners-without-internet-access 
       - name: Archive tool cache

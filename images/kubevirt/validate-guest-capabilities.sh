@@ -46,6 +46,10 @@ test -x /opt/runner/hook.sh
 test -d /home/runner/k8s
 test -x "/opt/hostedtoolcache/Python/${PYTHON_TOOLCACHE_VERSION}/x64/bin/python"
 test -f "/opt/hostedtoolcache/Python/${PYTHON_TOOLCACHE_VERSION}/x64.complete"
+test "$(
+  "/opt/hostedtoolcache/Python/${PYTHON_TOOLCACHE_VERSION}/x64/bin/python" \
+    -m pip --version | awk '{print $2}'
+)" = "$PYTHON_TOOLCACHE_PIP_VERSION"
 
 android_home=/home/runner/Android/SDK
 for android_component in \
