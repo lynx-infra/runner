@@ -164,6 +164,27 @@ RUN update-alternatives --set python3 /usr/bin/python$PYTHON_VERSION
 
 USER runner
 
+# Add the Harmony command-line tools and bundled SDKs. The 6.0.0.878 archive
+# intentionally uses the 6.0.0.868 install path to preserve compatibility
+# with branches that still select the older version string.
+ARG HARMONY_COMMANDLINE_TOOLS_6_0_0_868_URL="https://contentcenter-vali-drcn.dbankcdn.cn/pvt_2/DeveloperAlliance_package_901_9/94/v3/sk4rFo0CRtSyMJjSv3-o2g/commandline-tools-linux-x64-6.0.0.878.zip?HW-CC-KV=V1&HW-CC-Date=20260920T113213Z&HW-CC-Expire=315360000&HW-CC-Sign=FE574BF16ADB8395D0F20754F1919E6A6FAC5E030FCEF3540DEF4DF18BBF813E"
+ARG HARMONY_COMMANDLINE_TOOLS_6_1_1_300_URL="https://contentcenter-vali-drcn.dbankcdn.cn/pvt_2/DeveloperAlliance_package_901_9/33/v3/upQ8jIoTTXGuKCRYmZjmEQ/commandline-tools-linux-x64-6.1.1.300.zip?HW-CC-KV=V1&HW-CC-Date=20260916T041607Z&HW-CC-Expire=315360000&HW-CC-Sign=89633463A1E2C8BF0BB5045484F345637B9514BF56346739CD06096E52DAE227"
+ENV COMMANDLINE_TOOL_BASE_DIR=${HOME}/open_harmony
+RUN mkdir -p "${COMMANDLINE_TOOL_BASE_DIR}/6.0.0.868" \
+    && wget --progress=dot:giga \
+        --output-document=/tmp/commandline-tools-linux-x64-6.0.0.868.zip \
+        "${HARMONY_COMMANDLINE_TOOLS_6_0_0_868_URL}" \
+    && unzip -q /tmp/commandline-tools-linux-x64-6.0.0.868.zip \
+        -d "${COMMANDLINE_TOOL_BASE_DIR}/6.0.0.868" \
+    && rm -f /tmp/commandline-tools-linux-x64-6.0.0.868.zip
+RUN mkdir -p "${COMMANDLINE_TOOL_BASE_DIR}/6.1.1.300" \
+    && wget --progress=dot:giga \
+        --output-document=/tmp/commandline-tools-linux-x64-6.1.1.300.zip \
+        "${HARMONY_COMMANDLINE_TOOLS_6_1_1_300_URL}" \
+    && unzip -q /tmp/commandline-tools-linux-x64-6.1.1.300.zip \
+        -d "${COMMANDLINE_TOOL_BASE_DIR}/6.1.1.300" \
+    && rm -f /tmp/commandline-tools-linux-x64-6.1.1.300.zip
+
 # Add the Android sdk,ndk,avd
 # All versions of NDK to be installed.
 ARG ANDROID_NDK_LIST="21.1.6352462;26.3.11579264"
