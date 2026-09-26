@@ -28,7 +28,6 @@ on:
       runnerVersion:
         type: string
         description: GitHub Actions runner version without the v prefix
-        default: '2.336.0'
         required: true
       publish:
         type: boolean
